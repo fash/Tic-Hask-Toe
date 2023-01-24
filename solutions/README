@@ -1,0 +1,9 @@
+-- Higher Order Functions
+-- Anonymous Functions(Lamda Expression & Operation sections)
+-- Predicates
+-- Dim function 
+-- Folds (to main variations foldr & foldl) takes a list and repeatedly applies a binaray function to it reducing it into an accumulated value also known as reduce in other languages
+-- The accumulated value can be anything .
+-- Aggregate it into some summary valuue 
+--For loops are the same as foldr/foldl(accumulator is on the right for foldr and on the left for foldl)
+--Inductive and Iterative Recursion
