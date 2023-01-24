@@ -1,4 +1,6 @@
--- Higher Order Functions
+-- Higher Order Functions 
+
+
 -- Anonymous Functions(Lamda Expression & Operation sections)
 -- Predicates
 -- Dim function 
@@ -7,3 +9,23 @@
 -- Aggregate it into some summary valuue 
 --For loops are the same as foldr/foldl(accumulator is on the right for foldr and on the left for foldl)
 --Inductive and Iterative Recursion
+--zipWith behaves like zip but instead of tupling the elements of the liusts, it applies a provided binary function
+
+-- Apply & Compose: ($) apply and (.) called compose 
+
+
+-- compose takes two functions and merges them into a new function. composition goes from right to left. The right will be first composed then merged --into the left and gives us a new function allowing us to join functions together.
+
+-- apply abstracts ordinary function application into its own higher order funjction. 
+-- its left argument can be any function (a -> b )
+-- its right argument can be any expression whose ultimate value matches the type of that functions expected input (a). Basically allowing us to write --less/replace parenthesis()
+
+-- Apply example
+criteria = [knowsLangs[Haskell,TypeScript], hasYrsExp 2,inCountry USA]
+screenCandidate c = and (map ($ c) criteria)
+
+-- Composition syntax
+-- .nub removes the duplicate elements of the list
+-- isAlpha checks if it is uppercase or lowercase , is Alphabet
+
+-- pangram txt = (==26) $length $nub $ map toLower $ filter isAlpha txt
