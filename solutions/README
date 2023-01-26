@@ -21,11 +21,90 @@
 -- its right argument can be any expression whose ultimate value matches the type of that functions expected input (a). Basically allowing us to write --less/replace parenthesis()
 
 -- Apply example
-criteria = [knowsLangs[Haskell,TypeScript], hasYrsExp 2,inCountry USA]
-screenCandidate c = and (map ($ c) criteria)
+--criteria = [knowsLangs[Haskell,TypeScript], hasYrsExp 2,inCountry USA]
+--screenCandidate c = and (map ($ c) criteria)
 
 -- Composition syntax
 -- .nub removes the duplicate elements of the list
 -- isAlpha checks if it is uppercase or lowercase , is Alphabet
 
 -- pangram txt = (==26) $length $nub $ map toLower $ filter isAlpha txt
+
+reverse_ :: [a] -> [a]  --  take a list of any type and return a list of any type in reverse
+reverse_ xs = foldr _ [] xs
+reverse_ xs =foldl (/acc x -> x : acc) [] xs
+
+-- IO Context
+
+--IO is contagious : pure data that mixes with IO Data becomes IO data
+--Expressions that produce IO values are called actions
+--Haskell ensures total segregation of pure and impure expressions, this is achieve through a special one-way type context called IO
+
+
+-- SEQUENCE (>>)
+
+
+-- BIND (>>=)
+-- Allows us to sequence actions but is even more powerful
+(>>=) :: IO a -> (a -> IO b) -> IO b
+myAction :: a -> IO b
+
+
+Pure input - Bindable action - IO result 
+
+--boundAction :: IO a - IO b
+--boundAction = (>>= myAction) -- partially applying bind to an action lets it accept an IO value so we can apply it to the result of a previous action
+
+
+-- RETURN
+
+-- We cant bind pure functions with actions directly , only actions can be composed with (>>=)
+-- To apply pure functions to impure data, we can convert them into bindable actions by composing them with the return function
+
+--myPureFunc :: a -> b
+--return :: a -> IO a
+
+--myAction :: a -> IO b
+--myAction = return . myPureFunc
+
+-- do Notation 
+-- alt syntax for monadic code (computation in a context)
+-- While emulating imperative style, do notation to pure function expressions composed using (>>), (>>=) and nested lamdas
+-- like (>>),(>>=) and return do is not specific to IO 
+-- we should understand how to code without do before adopting it
+
+greetTrainer :: IO ()
+greetTrainer =
+putStrLn "Enter your name: " >>
+getLine >> = (/name -> putStrLn $ "Ohayou, "++ name ++ "!")
+
+--WithDO 
+
+greetTrainer :: IO ()
+greetTrainer = do
+putStrLn "Enter your name: " 
+getLine >> = (/name -> putStrLn $ "Ohayou, "++ name ++ "!")
+
+
+-- Let
+
+The let keyword can be used inside do blocks to assign intermediate variable to the results of pure calculations
+
+leapChecker :: IO ()
+
+
+-- Nested do Blocks
+
+nestedDo = do
+putStrLn "Enable debug mode? (y/n)"
+c <- getChar
+if c == 'y'
+then do
+putStrLn "Debug mode enabled."
+
+...
+
+else do 
+putStrLn "Debug mode disabled"
+
+...
