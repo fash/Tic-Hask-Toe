@@ -108,3 +108,198 @@ else do
 putStrLn "Debug mode disabled"
 
 ...
+
+-- 02/02/23
+-- Accessing field values 
+-- Selctors provide us built-in getter functions for every field so we do not need to define them ourselves
+-- To retrieve a field value we just apply the selector to a record value
+
+:t getId
+getId :: PokedxEntry -> Int
+getId alakazum
+26
+getName alakazum
+"Alakazum"
+
+-- Field replacement
+-- The selector syntax also makes it trivial to replace field values 
+--To make a modified copy of a record we write the name of the original record forllwed by curly braces with the field selector and its new value
+alakazumSilver = alakazum {getDescription = "This is a test description"}
+
+-- Every unmentioned field will retain its original valueWe can also replace multiple field values simulteneously 
+
+--Contructing Large records
+--data PokedxEntry = PokedxEntr Int String String Float Float String
+
+
+--Polymorphic containers
+
+---Records can be polymorphic serving as general containers that can hold data of any type in their fields
+--Polymorphic fields in a record are defined using type param : arbitrary lowercase names that typically are a single letter
+
+-- Typeclasses : What are they?
+--Typeclasses are collections of overloaded behaviours that types can implement via instances
+--Overloaded means different types implemtnt the same behaviors in distinct ways on an adhoc basis
+--These behaviors may consist of 
+-- Methods : class-specific function like (==) for Eq or Show which will convert a value to a strint
+--Properties : class-specific constanct like minBound or maxBound or Bounded
+--Each typeclass has some minimal subset of bahviours that must be implemented to define an instances
+--Satisfying this requirement often provides additional functionality for free making typeclasses powerful
+
+--Classes as constraints
+-- Typeclasses also provide a means of constraining polymorphic functions i.e. Limiting the types of data a function can operate onParadoxically , constraining polymorphism actually expands the utility of a function
+
+--Polymorphic functions also happens to do the least : it's called the identity function (:: a -> a) and can do nothing besides return the same value as its input
+
+-- Manual instances-- Instance ... Class ... Type ... Where 
+
+-- if we derive a show instance for our PokedxEntry record, values will print like this in GHCi
+--....
+--..... check presentation on LMS ...
+-- Maybe context 
+-- Either context 
+-- data Either e a = Left e ] Right a
+
+
+
+Q3 Write the following two functions : 
+--isDigit will take a character as input and return a boolean value
+--Construct a list of characters from 0 to 9 using range syntax
+-- Use elem with your range to return the appropriate boolean value
+
+isDigit :: Char -> Bool
+isDigit c = elem c ['0' .. '9']
+
+
+--readDigit takes a character value and returns the corresponding Int value if it is a valid digit. if a non-digit character is given , return -1 as a default value
+
+readDigit :: Char -> Int
+readDigit c = if isDigit c then read [c] else -1 
+
+--Q4  Use replicate with the size constant and the constructor you defined for an empty square in Assignment 1 to declare two new constanct _EMPTY_ROW_ and _EMPTY_BOARD_
+-- USE _EMPTY_ROW_ in the definition of _EMPTY_BOARD_
+_EMPTY_ROW_ :: Row
+ _EMPTY_ROW_ = replicate_SIZE_ E
+
+ _EMPTY_BOARD_ :: Board
+_EMPTY_BOARD_ = replicate_SIZE_EMPTY_ROW_
+
+--Q5 
+isTied :: Board -> Bool
+isTied b = all(/=E) (concat b)
+
+---- FUNCTOR -------
+
+
+-- Overloaded Adapters
+
+
+-- Maybe
+Instance Functor' Where fmap :: (a -> b) -> Maybe' a -> Maybe' b
+fmap f(Just' x) = Just' (f x)
+fmap _Nothing' = Nothing'
+
+-- Either 
+Instance Functor 
+
+
+-- Applicative Functor  ----
+-- Mapping higher-arity Functions 
+: fmap
+: Maybe
+
+--- Pure ---
+:monads
+:IO
+:return
+Any where u can use return u can use monads but not the other way
+
+Maybe Monad 
+safeDiv :: Int -> Int -> Maybe IntsafeDiv x y = if y /= 0 then Just $ x 'div' y else Nothing
+
+safeSqrt :: Int -> Maybe Float
+safeSqrt x = if x >=0 then Just . sqrt $ fromIntegral x else Nothing
+
+
+-- *** INSTRUCTIONS: *** --
+  -- Open your TicHaskToe repository in Gitpod
+  -- Create a file `State.hs` in the `solutions` directory and paste the code below.
+  -- Open the `TicHaskToe.cabal` file in the root directory,
+    -- find the `executable TicHaskToe` stanza,and make the following changes:
+      -- 1. Add `, State` below `, A5` in the `other-modules:` section
+      -- 2. Add `, mtl` below `, random` in the `build-depends:` section
+  -- To test the code:
+    -- 1. Run `cabal repl` in the terminal and then `:l State`
+    -- 2. Enter `randomGame`
+
+-- ignore some linter suggestions:
+{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
+{-# HLINT ignore "Use tuple-section" #-}
+{-# HLINT ignore "Eta reduce" #-}
+
+module State where
+
+import A1
+import A2
+import A4
+import A5
+
+import System.Random (StdGen, randomR, newStdGen)
+import Control.Monad.State
+
+-- define a record type to hold the state
+data Game = Game {
+    activePlayer :: Player
+  , status       :: GameState
+  , board        :: Board
+  , generator    :: StdGen
+  }
+
+-- create an initial Game value using a random generator
+initialState :: StdGen -> Game
+initialState gen = Game {
+    activePlayer = X
+  , status       = Playing
+  , board        = _EMPTY_BOARD_
+  , generator    = gen
+  }
+
+-- game loop
+playGame :: State Game ()
+playGame = do
+  Game ap _ b gen <- get
+  let opens      = getOpenMoves b
+      (i, gen')  = randomR (0, length opens - 1) gen
+      move       = opens !! i
+      (stat, b') = playMove ap b move
+  -- update the state
+  put $ Game { activePlayer = switchPlayer ap
+             , status       = stat
+             , board        = b'
+             , generator    = gen'
+             }
+  -- play again if game isn't over (otherwise return ())
+  when (stat == Playing) playGame
+
+randomGame :: IO ()
+randomGame = do
+  game <- initialState <$> newStdGen -- get a random generator and create initial game state
+  let (_, game') = runState playGame game -- call runner to get handler and apply it to initial state
+  -- display result
+  printBoard $ board game'
+  putStrLn . showGameState $ status game'
+
+-- *** HELPERS TO IDENTIFY INDICES OF OPEN SQUARES *** --
+getOpenMoves :: Board -> [Move]
+getOpenMoves b = concat $ go 0 [] b
+  where
+    go _ ms []     = ms
+    go i ms (r:rs) = go (i + 1) (map (\j -> (i, j)) (getOpenSquares r) : ms) rs
+
+getOpenSquares :: Row -> [Int]
+getOpenSquares r = go 0 [] r
+  where
+    go _ os []       = os
+    go j os (sq:sqs)
+      | sq == E      = go (j + 1) (j:os) sqs
+      | otherwise    = go (j + 1) os     sqs
